@@ -13,3 +13,7 @@ python export.py --weights FastSAM-x.pt --outputFastSAM-x.onnx
 ```sheel
 python trt_infer.py
 ```
+
+## Reference
+
+## [TensorRT](https://github.com/NVIDIA/TensorRT)、[FastSam_Awsome_TensorRT](https://github.com/ChuRuaNh0/FastSam_Awsome_TensorRT)
