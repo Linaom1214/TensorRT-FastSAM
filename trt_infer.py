@@ -7,9 +7,10 @@ import cv2
 import numpy as np
 import torch
 from ultralytics.engine.results import Results
-from ultralytics.yolo.utils import ops
+from ultralytics.utils import ops
 from PIL import Image
 from random import randint
+import argparse
 
 import common
 from utils import overlay
@@ -234,17 +235,54 @@ class FastSam(object):
         return masks
 
 if __name__ == '__main__':
+    # TODO: add these arguments to the argparse
     retina_masks = True
     conf = 0.1
     iou = 0.25
     agnostic_nms = False
 
-    model = FastSam(model_weights="FastSAM-x.trt")
-    # single inference
-    img = cv2.imread('xxx.png')
-    masks = model.segment(img, retina_masks, conf, iou, agnostic_nms)
+    # Parse command line arguments
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument(
+        "engine", 
+        type=str, 
+        help="The file path of the TensorRT engine."
+    )
+    
+    parser.add_argument(
+        "image", 
+        type=str, 
+        help="The file path of the image provided as input for inference."
+    )
 
-    #batch inference
-    imgs = ['xx.bmp', 'xx.bmp',
-             'xx.bmp', 'xx.bmp']
-    masks = model.batch_segment(imgs, retina_masks, conf, iou, agnostic_nms)
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="The path to output the inference visualization."
+    )
+    
+    args = parser.parse_args()
+    
+    if args.output is None:
+        output_path = '.'.join(args.image.split('.')[:-1]) + "_output.jpg"
+    else:
+        output_path = args.output
+        
+    model = FastSam(model_weights=args.engine)
+    
+    # # single inference
+    bgr = cv2.imread(args.img)
+    rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    mask = model.segment(rgb, retina_masks, conf, iou, agnostic_nms)
+
+    out_image = cv2.cvtColor(mask, cv2.COLOR_RGB2BGR)
+
+    cv2.imwrite(output_path, out_image)
+    
+    # TODO: to add a flag: single images / batch to the arguments parser
+    # #batch inference
+    # imgs = ['xx.bmp', 'xx.bmp',
+    #          'xx.bmp', 'xx.bmp']
+    # masks = model.batch_segment(imgs, retina_masks, conf, iou, agnostic_nms)
